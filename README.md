@@ -1,40 +1,47 @@
 # R2 Directory Listing
 
-This is a simple Directory Listing script for [Cloudflare R2](https://developers.cloudflare.com/r2/) and hosted on [Cloudflare Workers](https://workers.cloudflare.com/). It is inspired by the [Directory Listing of Gitea downloads site](https://blog.gitea.com/evolution-of-the-gitea-downloads-site/).
+基于 [cmj2002/r2-dir-list](https://github.com/cmj2002/r2-dir-list.git) 微调的Cloudflare R2 的目录和文件列表展示服务
 
-## Usage
+## 如何使用
 
-Clone this repository, install dependencies and edit the configs:
+### 克隆仓库
 
 ```bash
-git clone https://github.com/cmj2002/r2-dir-list.git
-cd r2-dir-list
-npm install
-mv src/config.ts.example src/config.ts
-mv wrangler.toml.example wrangler.toml
+git clone https://github.com/luoweihua7/r2-dir-list.git
 ```
 
-You should edit:
-- `bucketname` in `src/config.ts` and `wrangler.toml` to your bucket name.
-- `bucketdomain.example.com` in `src/config.ts` and `wrangler.toml` to your bucket domain. **It must have been set as a [custom domain](https://developers.cloudflare.com/r2/buckets/public-buckets/#custom-domains) of your Cloudflare R2 bucket**.
-- `example.com` in `wrangler.toml`'s `zone_name` to yours.
-- Other settings like `name`, `desp`, `showPoweredBy` and `legalInfo` in `src/config.ts` to your own.
+### 修改配置
 
-You may want to search `bucketdomain`, `bucketname` and `example.com` in your code to ensure you have edited all of them.
+#### wrangler.toml
 
-Then you can run `wrangler deploy` to deploy it to your Cloudflare Workers.
+复制 `wrangler.toml.example` 文件为 `wrangler.toml`，并编辑内容
 
-## Demo
+- 修改 `name` 为你想要的名称，即 **具体的Worker** 名称
 
-https://datasets.caomingjun.com/
+以下配置参数可直接在控制台配置，若直接在控制台配置，则直接删除相关字段即可
 
-This is a production website of mine, which hosts some machine learning datasets used in my papers and codes to share with other reserchers. It is a Cloudflare R2 bucket with this worker in front of it.
+- 修改 **routes** 字段内容中 `pattern` 和 `zone_name` 内容（控制台配置路径为“[具体的Worker] >> 设置 >> 触发器 >> 添加路由”）
+  - `zone_name` 为你在Cloudflare中主域名的名称
+  - `pattern` 为需要配置的路由，注意格式
+- 修改 **r2_buckets** 字段内容中 `BUCKET_bucketname` 的 `bucket_name` 内容为真实的 R2Bucket 名称（控制台配置路径为“[具体的Worker] >> 设置 >> 变量 >> R2 存储桶绑定>> 添加绑定”）
 
-## How it works
+#### config.ts
 
-It will only overwrite the response when all of the following conditions are met:
-- Response from R2 has a status of 404
-- The requested pathname ends with `/`
-- There exist "subdirectories" or "files" under the current "directory" (The quotation marks here are used because directories and files are abstract concepts in object storage)
+复制 `src/config.ts.example` 文件为 `src/config.ts`，并编辑内容
 
-In such a case, it will generate a HTML page with the list of "subdirectories" and "files" under the current "directory" and return it. Otherwise, it will just return the response from R2. So **putting this worker in front of your R2 bucket will not affect any normal access to your bucket**.
+- `name` 站点标题名称，按需修改
+- `secretKey` 可选参数，可以配置一个密钥，在访问站点时若无此密钥，则会返回401未授权，简单保护一下
+
+### 部署
+
+配置好以上参数后，执行以下命令安装依赖
+
+```bash
+pnpm install
+```
+
+执行部署
+
+```bash
+npm run deploy
+```
